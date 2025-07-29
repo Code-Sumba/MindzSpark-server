@@ -21,7 +21,7 @@ import questionRouter from './route/question.route.js'
 const app = express()
 app.use(cors({
     credentials : true,
-    origin : "http://shop-mindzspark.netlify.app"
+    origin : "https://shop-mindzspark.netlify.app"
 }))
 app.use(express.json())
 app.use(cookieParser())
