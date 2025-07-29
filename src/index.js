@@ -25,7 +25,7 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(cookieParser())
-// app.use(morgan('combined')) // Morgan is an HTTP request logger middleware for Node.js
+app.use(morgan('combined')) // Morgan is an HTTP request logger middleware for Node.js
 
 // helmet avoid webapps getting hacked easily
 app.use(helmet({
