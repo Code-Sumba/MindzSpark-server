@@ -21,11 +21,11 @@ import questionRouter from './route/question.route.js'
 const app = express()
 app.use(cors({
     credentials : true,
-    origin : process.env.FRONTEND_URL
+    origin : process.env.FRONTEND_URL || 'http://shop-mindzspark.netlify.app'
 }))
 app.use(express.json())
 app.use(cookieParser())
-app.use(morgan('combined')) // Morgan is an HTTP request logger middleware for Node.js
+// app.use(morgan('combined')) // Morgan is an HTTP request logger middleware for Node.js
 
 // helmet avoid webapps getting hacked easily
 app.use(helmet({
@@ -33,7 +33,7 @@ app.use(helmet({
 }))
 
 // || => this a OR condition
-const PORT = 8080 || process.env.PORT 
+const PORT = process.env.PORT || 8080
 
 // Starting the server.
 app.get("/",(request,response)=>{
