@@ -427,3 +427,22 @@ export const bulkUploadProducts = async (req, res) => {
     res.status(500).json({ success: false, message: error.message || error, error: true });
   }
 };
+
+export const getProductsBySeller = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const products = await ProductModel.find({ seller: sellerId });
+    return res.json({
+      message: "Seller's products fetched successfully",
+      data: products,
+      error: false,
+      success: true
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false
+    });
+  }
+};

@@ -17,12 +17,14 @@ import addressRouter from './route/address.route.js'
 import orderRouter from './route/order.route.js'
 import reviewRouter from './route/review.route.js'
 import questionRouter from './route/question.route.js'
+import notificationRouter from './route/notification.route.js'
+import bannerRouter from './route/banner.route.js'
 
 const app = express()
-app.use(cors({
-    credentials : true,
-    origin : "https://shop-mindzspark.netlify.app"
-}))
+// app.use(cors({
+//     credentials : true,
+//     origin : process.env.FRONTEND_URL
+// }))
 app.use(express.json())
 app.use(cookieParser())
 // app.use(morgan('combined')) // Morgan is an HTTP request logger middleware for Node.js
@@ -31,9 +33,25 @@ app.use(cookieParser())
 app.use(helmet({
     crossOriginResourcePolicy : false
 }))
+const allowedOrigins = [
+  'https://shop-mindzspark.netlify.app',
+  'http://localhost:5173', // shop frontend
+  'http://localhost:5174'  // admin panel frontend
+];
+
+app.use(cors({
+  credentials: true,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 
 // || => this a OR condition
-const PORT = process.env.PORT || 8080
+const PORT = 8080 || process.env.PORT 
 
 // Starting the server.
 app.get("/",(request,response)=>{
@@ -54,6 +72,8 @@ app.use("/api/address",addressRouter)
 app.use('/api/order',orderRouter)
 app.use('/api/review', reviewRouter)
 app.use('/api/question', questionRouter)
+app.use('/api/notification', notificationRouter)
+app.use('/api/banner', bannerRouter)
 
 // connecting to database for database operations
 connectDB().then(()=>{
