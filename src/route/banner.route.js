@@ -13,7 +13,7 @@ const router = express.Router();
 // Admin: Upload new banner
 router.post('/banner', auth, Admin, upload.single('image'), createBanner);
 // Public: Get all banners
-router.get('/', getAllBanners);
+router.get('/banner', getAllBanners);
 // Admin: Delete banner
 router.delete('/:id', auth, Admin, deleteBanner);
 
