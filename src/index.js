@@ -52,7 +52,7 @@ app.use(cors({
 }));
 
 // || => this a OR condition
-const PORT = 8080 || process.env.PORT 
+const PORT = 8080
 
 // Starting the server.
 app.get("/",(request,response)=>{
@@ -83,4 +83,5 @@ connectDB().then(()=>{
         console.log("Server is running",PORT)
     })
 })
+
 
