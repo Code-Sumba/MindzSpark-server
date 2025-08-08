@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 // Admin: Upload new banner
-router.post('/', auth, Admin, upload.single('image'), createBanner);
+router.post('/banner', auth, Admin, upload.single('image'), createBanner);
 // Public: Get all banners
 router.get('/', getAllBanners);
 // Admin: Delete banner

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import auth from '../middleware/auth.js'
-import { CashOnDeliveryOrderController, createRazorpayOrder, getOrderDetailsController, handleWebhook, paymentController, verifyRazorpayPayment, addOrderStatusUpdate, backfillOrderDeliveryAddresses, getAllOrdersController, getTodayOrdersController } from '../controllers/order.controller.js'
+import { CashOnDeliveryOrderController, createRazorpayOrder, getOrderDetailsController, handleWebhook, paymentController, verifyRazorpayPayment, addOrderStatusUpdate, backfillOrderDeliveryAddresses, getAllOrdersController, getTodayOrdersController, getOrderStatsController, updateOrderStatusController, bulkUpdateOrderStatusController } from '../controllers/order.controller.js'
 import razorpay from '../config/razorpay.js'
 
 const orderRouter = Router()
@@ -14,6 +14,9 @@ orderRouter.post('/backfill-delivery-addresses', auth, backfillOrderDeliveryAddr
 orderRouter.get("/order-list",auth,getOrderDetailsController)
 orderRouter.get('/all-orders', auth, getAllOrdersController)
 orderRouter.get('/today-orders', auth, getTodayOrdersController)
+orderRouter.get('/order-stats', auth, getOrderStatsController)
+orderRouter.put('/update-status', auth, updateOrderStatusController)
+orderRouter.put('/bulk-update-status', auth, bulkUpdateOrderStatusController)
 
 // Add Razorpay order creation endpoint stub
 // router.post('/create-razorpay-order', async (req, res) => {

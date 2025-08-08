@@ -308,3 +308,185 @@ export async function getTodayOrdersController(req, res) {
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+export async function getOrderStatsController(req, res) {
+  try {
+    if (!req.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    const user = await UserModel.findById(req.userId);
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Admins only' });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Get all orders
+    const totalOrders = await OrderModel.countDocuments();
+    
+    // Get today's orders
+    const todayOrders = await OrderModel.countDocuments({
+      createdAt: { $gte: today, $lt: tomorrow }
+    });
+
+    // Get total revenue
+    const revenueResult = await OrderModel.aggregate([
+      { $group: { _id: null, total: { $sum: '$totalAmt' } } }
+    ]);
+    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+
+    // Get pending orders
+    const pendingOrders = await OrderModel.countDocuments({
+      $or: [
+        { payment_status: 'CASH ON DELIVERY' },
+        { payment_status: 'ORDER CREATED AT RAZORPAY' }
+      ]
+    });
+
+    // Get orders by status
+    const ordersByStatus = await OrderModel.aggregate([
+      {
+        $group: {
+          _id: '$payment_status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get monthly revenue trend (last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    
+    const monthlyRevenue = await OrderModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: sixMonthsAgo }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          revenue: { $sum: '$totalAmt' },
+          orders: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalOrders,
+        todayOrders,
+        totalRevenue,
+        pendingOrders,
+        ordersByStatus,
+        monthlyRevenue
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function updateOrderStatusController(req, res) {
+  try {
+    if (!req.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    const user = await UserModel.findById(req.userId);
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Admins only' });
+    }
+
+    const { orderId, status, details } = req.body;
+    
+    if (!orderId || !status) {
+      return res.status(400).json({ success: false, message: 'Order ID and status are required' });
+    }
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      day: 'numeric', 
+      month: 'short', 
+      year: '2-digit' 
+    });
+
+    const update = {
+      title: status,
+      date: dateStr,
+      details: Array.isArray(details) ? details : [details || status]
+    };
+
+    const order = await OrderModel.findByIdAndUpdate(
+      orderId,
+      { 
+        $push: { statusUpdates: update },
+        $set: { updatedAt: now }
+      },
+      { new: true }
+    ).populate('userId', 'name email mobile');
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    res.json({ success: true, data: order, message: 'Order status updated successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function bulkUpdateOrderStatusController(req, res) {
+  try {
+    if (!req.userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    const user = await UserModel.findById(req.userId);
+    if (!user || user.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Admins only' });
+    }
+
+    const { orderIds, status, details } = req.body;
+    
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0 || !status) {
+      return res.status(400).json({ success: false, message: 'Order IDs array and status are required' });
+    }
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      day: 'numeric', 
+      month: 'short', 
+      year: '2-digit' 
+    });
+
+    const update = {
+      title: status,
+      date: dateStr,
+      details: Array.isArray(details) ? details : [details || status]
+    };
+
+    const result = await OrderModel.updateMany(
+      { _id: { $in: orderIds } },
+      { 
+        $push: { statusUpdates: update },
+        $set: { updatedAt: now }
+      }
+    );
+
+    res.json({ 
+      success: true, 
+      data: { 
+        modifiedCount: result.modifiedCount,
+        matchedCount: result.matchedCount 
+      }, 
+      message: `${result.modifiedCount} orders updated successfully` 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

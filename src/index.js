@@ -19,6 +19,7 @@ import reviewRouter from './route/review.route.js'
 import questionRouter from './route/question.route.js'
 import notificationRouter from './route/notification.route.js'
 import bannerRouter from './route/banner.route.js'
+import settingsRouter from './route/settings.route.js'
 
 const app = express()
 // app.use(cors({
@@ -74,6 +75,7 @@ app.use('/api/review', reviewRouter)
 app.use('/api/question', questionRouter)
 app.use('/api/notification', notificationRouter)
 app.use('/api/banner', bannerRouter)
+app.use('/api/settings', settingsRouter)
 
 // connecting to database for database operations
 connectDB().then(()=>{
