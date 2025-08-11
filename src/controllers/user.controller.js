@@ -8,6 +8,15 @@ import uploadImageClodinary from '../utils/uploadImageClodinary.js'
 import generatedOtp from '../utils/generatedOtp.js'
 import forgotPasswordTemplate from '../utils/forgotPasswordTemplate.js'
 import jwt from 'jsonwebtoken'
+import nodemailer from "nodemailer";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_ADDRESS,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 export async function registerUserController(request,response){
     try {
@@ -50,7 +59,7 @@ export async function registerUserController(request,response){
         const VerifyEmailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
 
 
-        const verifyEmail = await sendEmail({
+        const verifyEmail = await transporter.sendEmail({
             sendTo : email,
             subject : "Verify email from MindzSpark",
             html : verifyEmailTemplate({
@@ -306,8 +315,9 @@ export async function forgotPasswordController(request,response) {
             forgot_password_expiry : new Date(expireTime).toISOString()
         })
 
-        await sendEmail({
-            sendTo : email,
+        await transporter.sendMail({
+            from: process.env.EMAIL_ADDRESS,
+            to: email,
             subject : "Forgot password from Binkeyit",
             html : forgotPasswordTemplate({
                 name : user.name,
