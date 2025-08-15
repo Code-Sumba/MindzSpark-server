@@ -73,6 +73,14 @@ const userSchema = new mongoose.Schema({
         type : Date,
         default : ""
     },
+    mobile_otp : {
+        type : String,
+        default : null
+    },
+    mobile_otp_expiry : {
+        type : Date,
+        default : ""
+    },
     role : {
         type : String,
         enum : ['ADMIN',"USER"],
